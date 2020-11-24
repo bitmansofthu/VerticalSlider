@@ -21,8 +21,16 @@ class MainActivity : AppCompatActivity() {
         verticalSlider.setIconLowResource(R.drawable.ic_volume_low_grey600_36dp)
 
         verticalSlider.onProgressChangeListener = object : VerticalSlider.OnSliderProgressChangeListener {
-            override fun onChanged(progress: Int, max: Int) {
-                progressText.text = "%.0f%%".format(Locale.ENGLISH, progress.toFloat() / max.toFloat() * 100)
+            override fun onChanged(verticalSlider: VerticalSlider, progress: Int, fromUser: Boolean) {
+                progressText.text = "%.0f%%".format(Locale.ENGLISH, progress.toFloat() / verticalSlider.max.toFloat() * 100)
+            }
+
+            override fun onPressed(slider: VerticalSlider) {
+                progressText.text = "Pressed %.0f%%".format(Locale.ENGLISH, verticalSlider.progress.toFloat() / verticalSlider.max.toFloat() * 100)
+            }
+
+            override fun onReleased(slider: VerticalSlider) {
+                progressText.text = "Released %.0f%%".format(Locale.ENGLISH, verticalSlider.progress.toFloat() / verticalSlider.max.toFloat() * 100)
             }
         }
     }

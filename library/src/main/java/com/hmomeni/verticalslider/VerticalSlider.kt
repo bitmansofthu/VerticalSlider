@@ -49,20 +49,14 @@ class VerticalSlider : View {
             invalidate()
         }
     var max: Int = 10
-    var progress: Int = 5
+    private var _progress: Int = 5
+    var progress: Int
         set(value) {
-            if (value > max) {
-                throw RuntimeException("progress must not be larger than max")
-            }
-            field = value
-            onProgressChangeListener?.onChanged(progress, max)
-            progressRect.set(
-                0f,
-                (1 - calculateProgress()) * measuredHeight,
-                measuredWidth.toFloat(),
-                measuredHeight.toFloat()
-            )
-            invalidate()
+            updateProgress(value)
+            onProgressChangeListener?.onChanged(this, value, false)
+        }
+        get() {
+            return _progress
         }
     var onProgressChangeListener: OnSliderProgressChangeListener? = null
 
@@ -92,7 +86,6 @@ class VerticalSlider : View {
         isAntiAlias = true
     }
     private val path = Path()
-
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
@@ -137,16 +130,22 @@ class VerticalSlider : View {
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
+                onProgressChangeListener?.onPressed(this)
                 return true
             }
             MotionEvent.ACTION_MOVE, MotionEvent.ACTION_UP -> {
                 val y = event.y
                 val currentHeight = measuredHeight - y
                 val percent = currentHeight / measuredHeight.toFloat()
-                progress = when {
+                updateProgress(when {
                     percent >= 1 -> max
                     percent <= 0 -> 0
                     else -> (max * percent).toInt()
+                })
+                if (event.action == MotionEvent.ACTION_UP) {
+                    onProgressChangeListener?.onReleased(this)
+                } else {
+                    onProgressChangeListener?.onChanged(this, _progress, true)
                 }
                 return true
             }
@@ -158,8 +157,24 @@ class VerticalSlider : View {
         return progress.toFloat() / max.toFloat()
     }
 
+    protected fun updateProgress(progress: Int) {
+        if (progress > max) {
+            throw RuntimeException("progress must not be larger than max")
+        }
+        _progress = progress
+        progressRect.set(
+            0f,
+            (1 - calculateProgress()) * measuredHeight,
+            measuredWidth.toFloat(),
+            measuredHeight.toFloat()
+        )
+        invalidate()
+    }
+
     interface OnSliderProgressChangeListener {
-        fun onChanged(progress: Int, max: Int)
+        fun onChanged(slider: VerticalSlider, progress: Int, fromUser: Boolean)
+        fun onPressed(slider: VerticalSlider)
+        fun onReleased(slider: VerticalSlider)
     }
 
     private fun getBitmapFromVectorDrawable(context: Context, drawableId: Int): Bitmap {
