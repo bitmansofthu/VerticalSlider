@@ -7,5 +7,7 @@
         <attr name="vs_max" format="integer" />
         <attr name="vs_progress" format="integer" />
         <attr name="vs_cornerRadius" format="dimension" />
+        <attr name="vs_layoutDrawable" format="reference" />
+        <attr name="vs_progressDrawable" format="reference" />
     </declare-styleable>
 </resources>

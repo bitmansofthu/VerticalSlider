@@ -2,11 +2,11 @@ package com.hmomeni.verticalslider
 
 import android.content.Context
 import android.graphics.*
+import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import androidx.annotation.DrawableRes
-import androidx.annotation.IdRes
 import androidx.core.content.ContextCompat
 import kotlin.concurrent.thread
 
@@ -26,6 +26,8 @@ class VerticalSlider : View {
             max = a.getInteger(R.styleable.VerticalSlider_vs_max, max)
             progress = a.getInteger(R.styleable.VerticalSlider_vs_progress, progress)
             cornerRadius = a.getDimension(R.styleable.VerticalSlider_vs_cornerRadius, cornerRadius)
+            setProgressDrawableResource(a.getResourceId(R.styleable.VerticalSlider_vs_progressDrawable, -1))
+            setLayoutDrawableResource(a.getResourceId(R.styleable.VerticalSlider_vs_layoutDrawable, -1))
             thread {
                 if (iconHiResId != -1)
                     iconHigh = getBitmapFromVectorDrawable(context, iconHiResId)
@@ -42,6 +44,9 @@ class VerticalSlider : View {
     var iconHigh: Bitmap? = null
     var iconMedium: Bitmap? = null
     var iconLow: Bitmap? = null
+
+    var layoutDrawable: Drawable? = null
+    var progressDrawable: Drawable? = null
 
     var cornerRadius = dpToPx(10).toFloat()
         set(value) {
@@ -72,6 +77,17 @@ class VerticalSlider : View {
         iconLow = getBitmapFromVectorDrawable(context, resId)
     }
 
+    fun setLayoutDrawableResource(@DrawableRes resId: Int) {
+        if (resId != -1) {
+            layoutDrawable = ContextCompat.getDrawable(context, resId)
+        }
+    }
+
+    fun setProgressDrawableResource(@DrawableRes resId: Int) {
+        if (resId != -1) {
+            progressDrawable = ContextCompat.getDrawable(context, resId)
+        }
+    }
 
     private val iconWidth = dpToPx(36)
     private val iconRect: RectF = RectF()
@@ -86,6 +102,7 @@ class VerticalSlider : View {
         isAntiAlias = true
     }
     private val path = Path()
+    private val convertRect = Rect()
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
@@ -109,8 +126,20 @@ class VerticalSlider : View {
 
     override fun onDraw(canvas: Canvas) {
         canvas.clipPath(path)
-        canvas.drawRect(layoutRect, layoutPaint)
-        canvas.drawRect(progressRect, progressPaint)
+        if (layoutDrawable == null) {
+            canvas.drawRect(layoutRect, layoutPaint)
+        } else {
+            layoutRect.round(convertRect)
+            layoutDrawable?.bounds = convertRect
+            layoutDrawable?.draw(canvas)
+        }
+        if (progressDrawable == null) {
+            canvas.drawRect(progressRect, progressPaint)
+        } else {
+            progressRect.round(convertRect)
+            progressDrawable?.bounds = convertRect
+            progressDrawable?.draw(canvas)
+        }
 
         if (iconLow != null && iconMedium != null && iconHigh != null) {
             when {
