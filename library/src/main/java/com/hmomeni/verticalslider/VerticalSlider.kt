@@ -120,6 +120,7 @@ class VerticalSlider : View {
                 measuredWidth / 2f + iconWidth / 2,
                 measuredHeight / 2f + iconWidth / 2
             )
+            path.reset()
             path.addRoundRect(layoutRect, cornerRadius, cornerRadius, Path.Direction.CW)
         }
     }
